@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Comercial - Norte y Centroamérica</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1150px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-height: 70px;
+            object-fit: contain;
+        }
+        h1 {
+            color: #1a252f;
+            margin: 0;
+            font-size: 28px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        select, input[type="text"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        select {
+            width: 260px;
+            background-color: #f8f9fa;
+        }
+        input[type="text"] {
+            flex: 1;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .botones-accion {
+            display: none; 
+            gap: 10px;
+        }
+        .btn-copiar-todos {
+            background-color: #27ae60;
+            font-size: 14px;
+            padding: 10px 15px;
+        }
+        .btn-copiar-todos:hover {
+            background-color: #219653;
+        }
+        .btn-copiar-tabla {
+            background-color: #8e44ad;
+            font-size: 14px;
+            padding: 10px 15px;
+        }
+        .btn-copiar-tabla:hover {
+            background-color: #732d91;
+        }
+        .resultados-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            min-height: 45px;
+        }
+        .status {
+            font-size: 15px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .status.error {
+            color: #c0392b;
+        }
+        .loader {
+            display: none;
+            color: #e67e22;
+            font-weight: bold;
+        }
+        .table-container {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        th {
+            background-color: #2c3e50;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .badge {
+            color: white;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .badge.imp { background-color: #8e44ad; }
+        .badge.exp { background-color: #27ae60; }
+        .badge.both { background-color: #f39c12; }
+        .badge.fab { background-color: #2980b9; }
+        .data-cell {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .data-cell:last-child {
+            margin-bottom: 0;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #95a5a6;
+            padding: 2px 5px;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            color: #3498db;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-container">
+        <img src="https://github.com/auxiliar-tgg/photos-tgg/blob/main/LOGO.png?raw=true" alt="Logo de la Empresa" class="logo">
+        <h1>Radar Comercial - Directorio Real Norte y Centroamérica</h1>
+    </div>
+    
+    <div class="search-box">
+        <select id="regionSelect">
+            <option value="US_CA">Estados Unidos / Canadá (Inglés)</option>
+            <option value="MX_CENTRO">México / Centroamérica (Español)</option>
+        </select>
+        <input type="text" id="estadoInput" list="ubicacionesValidas" placeholder="Ej. Texas, TX, Nuevo León, Ontario, San José...">
+        <datalist id="ubicacionesValidas"></datalist>
+        <button onclick="iniciarBusqueda()">Buscar Empresas Reales</button>
+    </div>
+
+    <div class="resultados-info">
+        <div class="loader" id="loader">Validando cobertura y consultando registros... ⏳</div>
+        <div class="status" id="statusText"></div>
+        
+        <div id="contenedorBotones" class="botones-accion">
+            <button id="btnCopiarTabla" class="btn-copiar-tabla" onclick="copiarTablaParaExcel()">Copiar Tabla para Excel 📊</button>
+            <button id="btnCopiarTodos" class="btn-copiar-todos" onclick="copiarTodosLosCorreos()">Solo Correos 📋</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="resultadosTable">
+            <thead>
+                <tr>
+                    <th>Empresa / Company</th>
+                    <th>Industria / Industry</th>
+                    <th>Teléfono / Phone</th>
+                    <th>Correos Verificados</th>
+                    <th>Operación / Activity</th>
+                </tr>
+            </thead>
+            <tbody id="tablaCuerpo">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const catalogoCobertura = [
+        // 1. Estados Unidos (50 estados + código postal)
+        { nombre: "Alabama", pais: "Estados Unidos", region: "US_CA", aliases: ["al", "alabama"] },
+        { nombre: "Alaska", pais: "Estados Unidos", region: "US_CA", aliases: ["ak", "alaska"] },
+        { nombre: "Arizona", pais: "Estados Unidos", region: "US_CA", aliases: ["az", "arizona"] },
+        { nombre: "Arkansas", pais: "Estados Unidos", region: "US_CA", aliases: ["ar", "arkansas"] },
+        { nombre: "California", pais: "Estados Unidos", region: "US_CA", aliases: ["ca", "california"] },
+        { nombre: "Colorado", pais: "Estados Unidos", region: "US_CA", aliases: ["co", "colorado"] },
+        { nombre: "Connecticut", pais: "Estados Unidos", region: "US_CA", aliases: ["ct", "connecticut"] },
+        { nombre: "Delaware", pais: "Estados Unidos", region: "US_CA", aliases: ["de", "delaware"] },
+        { nombre: "Florida", pais: "Estados Unidos", region: "US_CA", aliases: ["fl", "florida"] },
+        { nombre: "Georgia", pais: "Estados Unidos", region: "US_CA", aliases: ["ga", "georgia"] },
+        { nombre: "Hawaii", pais: "Estados Unidos", region: "US_CA", aliases: ["hi", "hawaii", "hawai"] },
+        { nombre: "Idaho", pais: "Estados Unidos", region: "US_CA", aliases: ["id", "idaho"] },
+        { nombre: "Illinois", pais: "Estados Unidos", region: "US_CA", aliases: ["il", "illinois"] },
+        { nombre: "Indiana", pais: "Estados Unidos", region: "US_CA", aliases: ["in", "indiana"] },
+        { nombre: "Iowa", pais: "Estados Unidos", region: "US_CA", aliases: ["ia", "iowa"] },
+        { nombre: "Kansas", pais: "Estados Unidos", region: "US_CA", aliases: ["ks", "kansas"] },
+        { nombre: "Kentucky", pais: "Estados Unidos", region: "US_CA", aliases: ["ky", "kentucky"] },
+        { nombre: "Louisiana", pais: "Estados Unidos", region: "US_CA", aliases: ["la", "louisiana", "luisiana"] },
+        { nombre: "Maine", pais: "Estados Unidos", region: "US_CA", aliases: ["me", "maine"] },
+        { nombre: "Maryland", pais: "Estados Unidos", region: "US_CA", aliases: ["md", "maryland"] },
+        { nombre: "Massachusetts", pais: "Estados Unidos", region: "US_CA", aliases: ["ma", "massachusetts"] },
+        { nombre: "Michigan", pais: "Estados Unidos", region: "US_CA", aliases: ["mi", "michigan"] },
+        { nombre: "Minnesota", pais: "Estados Unidos", region: "US_CA", aliases: ["mn", "minnesota"] },
+        { nombre: "Mississippi", pais: "Estados Unidos", region: "US_CA", aliases: ["ms", "mississippi", "misisipi"] },
+        { nombre: "Missouri", pais: "Estados Unidos", region: "US_CA", aliases: ["mo", "missouri", "misuri"] },
+        { nombre: "Montana", pais: "Estados Unidos", region: "US_CA", aliases: ["mt", "montana"] },
+        { nombre: "Nebraska", pais: "Estados Unidos", region: "US_CA", aliases: ["ne", "nebraska"] },
+        { nombre: "Nevada", pais: "Estados Unidos", region: "US_CA", aliases: ["nv", "nevada"] },
+        { nombre: "New Hampshire", pais: "Estados Unidos", region: "US_CA", aliases: ["nh", "new hampshire", "newhampshire"] },
+        { nombre: "New Jersey", pais: "Estados Unidos", region: "US_CA", aliases: ["nj", "new jersey", "newjersey", "nueva jersey"] },
+        { nombre: "New Mexico", pais: "Estados Unidos", region: "US_CA", aliases: ["nm", "new mexico", "newmexico", "nuevo mexico"] },
+        { nombre: "New York", pais: "Estados Unidos", region: "US_CA", aliases: ["ny", "new york", "newyork", "nueva york"] },
+        { nombre: "North Carolina", pais: "Estados Unidos", region: "US_CA", aliases: ["nc", "north carolina", "northcarolina", "carolina del norte"] },
+        { nombre: "North Dakota", pais: "Estados Unidos", region: "US_CA", aliases: ["nd", "north dakota", "northdakota", "dakota del norte"] },
+        { nombre: "Ohio", pais: "Estados Unidos", region: "US_CA", aliases: ["oh", "ohio"] },
+        { nombre: "Oklahoma", pais: "Estados Unidos", region: "US_CA", aliases: ["ok", "oklahoma"] },
+        { nombre: "Oregon", pais: "Estados Unidos", region: "US_CA", aliases: ["or", "oregon"] },
+        { nombre: "Pennsylvania", pais: "Estados Unidos", region: "US_CA", aliases: ["pa", "pennsylvania", "pensilvania"] },
+        { nombre: "Rhode Island", pais: "Estados Unidos", region: "US_CA", aliases: ["ri", "rhode island", "rhodeisland"] },
+        { nombre: "South Carolina", pais: "Estados Unidos", region: "US_CA", aliases: ["sc", "south carolina", "southcarolina", "carolina del sur"] },
+        { nombre: "South Dakota", pais: "Estados Unidos", region: "US_CA", aliases: ["sd", "south dakota", "southdakota", "dakota del sur"] },
+        { nombre: "Tennessee", pais: "Estados Unidos", region: "US_CA", aliases: ["tn", "tennessee"] },
+        { nombre: "Texas", pais: "Estados Unidos", region: "US_CA", aliases: ["tx", "texas"] },
+        { nombre: "Utah", pais: "Estados Unidos", region: "US_CA", aliases: ["ut", "utah"] },
+        { nombre: "Vermont", pais: "Estados Unidos", region: "US_CA", aliases: ["vt", "vermont"] },
+        { nombre: "Virginia", pais: "Estados Unidos", region: "US_CA", aliases: ["va", "virginia"] },
+        { nombre: "Washington", pais: "Estados Unidos", region: "US_CA", aliases: ["wa", "washington"] },
+        { nombre: "West Virginia", pais: "Estados Unidos", region: "US_CA", aliases: ["wv", "west virginia", "westvirginia", "virginia occidental"] },
+        { nombre: "Wisconsin", pais: "Estados Unidos", region: "US_CA", aliases: ["wi", "wisconsin"] },
+        { nombre: "Wyoming", pais: "Estados Unidos", region: "US_CA", aliases: ["wy", "wyoming"] },
+
+        // 2. México (32 entidades federativas)
+        { nombre: "Aguascalientes", pais: "México", region: "MX_CENTRO", aliases: ["aguascalientes", "ags"] },
+        { nombre: "Baja California", pais: "México", region: "MX_CENTRO", aliases: ["baja california", "bajacalifornia", "bc"] },
+        { nombre: "Baja California Sur", pais: "México", region: "MX_CENTRO", aliases: ["baja california sur", "bajacaliforniasur", "bcs"] },
+        { nombre: "Campeche", pais: "México", region: "MX_CENTRO", aliases: ["campeche"] },
+        { nombre: "Chiapas", pais: "México", region: "MX_CENTRO", aliases: ["chiapas"] },
+        { nombre: "Chihuahua", pais: "México", region: "MX_CENTRO", aliases: ["chihuahua"] },
+        { nombre: "Ciudad de México", pais: "México", region: "MX_CENTRO", aliases: ["ciudad de mexico", "ciudaddemexico", "cdmx", "df"] },
+        { nombre: "Coahuila de Zaragoza", pais: "México", region: "MX_CENTRO", aliases: ["coahuila de zaragoza", "coahuila"] },
+        { nombre: "Colima", pais: "México", region: "MX_CENTRO", aliases: ["colima"] },
+        { nombre: "Durango", pais: "México", region: "MX_CENTRO", aliases: ["durango"] },
+        { nombre: "Guanajuato", pais: "México", region: "MX_CENTRO", aliases: ["guanajuato", "gto"] },
+        { nombre: "Guerrero", pais: "México", region: "MX_CENTRO", aliases: ["guerrero"] },
+        { nombre: "Hidalgo", pais: "México", region: "MX_CENTRO", aliases: ["hidalgo"] },
+        { nombre: "Jalisco", pais: "México", region: "MX_CENTRO", aliases: ["jalisco", "jal"] },
+        { nombre: "Estado de México", pais: "México", region: "MX_CENTRO", aliases: ["estado de mexico", "estadodemexico", "edomex"] },
+        { nombre: "Michoacán de Ocampo", pais: "México", region: "MX_CENTRO", aliases: ["michoacan de ocampo", "michoacan"] },
+        { nombre: "Morelos", pais: "México", region: "MX_CENTRO", aliases: ["morelos"] },
+        { nombre: "Nayarit", pais: "México", region: "MX_CENTRO", aliases: ["nayarit"] },
+        { nombre: "Nuevo León", pais: "México", region: "MX_CENTRO", aliases: ["nuevo leon", "nuevoleon", "nl"] },
+        { nombre: "Oaxaca", pais: "México", region: "MX_CENTRO", aliases: ["oaxaca"] },
+        { nombre: "Puebla", pais: "México", region: "MX_CENTRO", aliases: ["puebla"] },
+        { nombre: "Querétaro", pais: "México", region: "MX_CENTRO", aliases: ["queretaro", "qro"] },
+        { nombre: "Quintana Roo", pais: "México", region: "MX_CENTRO", aliases: ["quintana roo", "quintanaroo", "qroo"] },
+        { nombre: "San Luis Potosí", pais: "México", region: "MX_CENTRO", aliases: ["san luis potosi", "sanluispotosi", "slp"] },
+        { nombre: "Sinaloa", pais: "México", region: "MX_CENTRO", aliases: ["sinaloa"] },
+        { nombre: "Sonora", pais: "México", region: "MX_CENTRO", aliases: ["sonora"] },
+        { nombre: "Tabasco", pais: "México", region: "MX_CENTRO", aliases: ["tabasco"] },
+        { nombre: "Tamaulipas", pais: "México", region: "MX_CENTRO", aliases: ["tamaulipas"] },
+        { nombre: "Tlaxcala", pais: "México", region: "MX_CENTRO", aliases: ["tlaxcala"] },
+        { nombre: "Veracruz de Ignacio de la Llave", pais: "México", region: "MX_CENTRO", aliases: ["veracruz de ignacio de la llave", "veracruz"] },
+        { nombre: "Yucatán", pais: "México", region: "MX_CENTRO", aliases: ["yucatan"] },
+        { nombre: "Zacatecas", pais: "México", region: "MX_CENTRO", aliases: ["zacatecas"] },
+
+        // 3. Canadá (10 provincias y 3 territorios)
+        { nombre: "Alberta", pais: "Canadá", region: "US_CA", aliases: ["alberta", "ab"] },
+        { nombre: "British Columbia", pais: "Canadá", region: "US_CA", aliases: ["british columbia", "britishcolumbia", "columbia britanica", "bc"] },
+        { nombre: "Manitoba", pais: "Canadá", region: "US_CA", aliases: ["manitoba", "mb"] },
+        { nombre: "New Brunswick", pais: "Canadá", region: "US_CA", aliases: ["new brunswick", "newbrunswick", "nuevo brunswick", "nb"] },
+        { nombre: "Newfoundland and Labrador", pais: "Canadá", region: "US_CA", aliases: ["newfoundland and labrador", "newfoundland", "terranova y labrador", "nl"] },
+        { nombre: "Nova Scotia", pais: "Canadá", region: "US_CA", aliases: ["nova scotia", "novascotia", "nueva escocia", "ns"] },
+        { nombre: "Ontario", pais: "Canadá", region: "US_CA", aliases: ["ontario", "on"] },
+        { nombre: "Prince Edward Island", pais: "Canadá", region: "US_CA", aliases: ["prince edward island", "princeedwardisland", "isla del principe eduardo", "pe"] },
+        { nombre: "Quebec", pais: "Canadá", region: "US_CA", aliases: ["quebec", "qc"] },
+        { nombre: "Saskatchewan", pais: "Canadá", region: "US_CA", aliases: ["saskatchewan", "sk"] },
+        { nombre: "Northwest Territories", pais: "Canadá", region: "US_CA", aliases: ["northwest territories", "northwestterritories", "territorios del noroeste", "nt"] },
+        { nombre: "Nunavut", pais: "Canadá", region: "US_CA", aliases: ["nunavut", "nu"] },
+        { nombre: "Yukon", pais: "Canadá", region: "US_CA", aliases: ["yukon", "yt"] },
+
+        // 4. Centroamérica (Países y divisiones administrativas)
+        // Guatemala
+        { nombre: "Guatemala (País)", pais: "Guatemala", region: "MX_CENTRO", aliases: ["guatemala"] },
+        { nombre: "Alta Verapaz", pais: "Guatemala", region: "MX_CENTRO", aliases: ["alta verapaz", "altaverapaz"] },
+        { nombre: "Baja Verapaz", pais: "Guatemala", region: "MX_CENTRO", aliases: ["baja verapaz", "bajaverapaz"] },
+        { nombre: "Chimaltenango", pais: "Guatemala", region: "MX_CENTRO", aliases: ["chimaltenango"] },
+        { nombre: "Chiquimula", pais: "Guatemala", region: "MX_CENTRO", aliases: ["chiquimula"] },
+        { nombre: "El Progreso", pais: "Guatemala", region: "MX_CENTRO", aliases: ["el progreso", "elprogreso"] },
+        { nombre: "Escuintla", pais: "Guatemala", region: "MX_CENTRO", aliases: ["escuintla"] },
+        { nombre: "Huehuetenango", pais: "Guatemala", region: "MX_CENTRO", aliases: ["huehuetenango"] },
+        { nombre: "Izabal", pais: "Guatemala", region: "MX_CENTRO", aliases: ["izabal"] },
+        { nombre: "Jalapa", pais: "Guatemala", region: "MX_CENTRO", aliases: ["jalapa"] },
+        { nombre: "Jutiapa", pais: "Guatemala", region: "MX_CENTRO", aliases: ["jutiapa"] },
+        { nombre: "Petén", pais: "Guatemala", region: "MX_CENTRO", aliases: ["peten"] },
+        { nombre: "Quetzaltenango", pais: "Guatemala", region: "MX_CENTRO", aliases: ["quetzaltenango"] },
+        { nombre: "Quiché", pais: "Guatemala", region: "MX_CENTRO", aliases: ["quiche"] },
+        { nombre: "Retalhuleu", pais: "Guatemala", region: "MX_CENTRO", aliases: ["retalhuleu"] },
+        { nombre: "Sacatepéquez", pais: "Guatemala", region: "MX_CENTRO", aliases: ["sacatepequez"] },
+        { nombre: "San Marcos", pais: "Guatemala", region: "MX_CENTRO", aliases: ["san marcos", "sanmarcos"] },
+        { nombre: "Santa Rosa", pais: "Guatemala", region: "MX_CENTRO", aliases: ["santa rosa", "santarosa"] },
+        { nombre: "Sololá", pais: "Guatemala", region: "MX_CENTRO", aliases: ["solola"] },
+        { nombre: "Suchitepéquez", pais: "Guatemala", region: "MX_CENTRO", aliases: ["suchitepequez"] },
+        { nombre: "Totonicapán", pais: "Guatemala", region: "MX_CENTRO", aliases: ["totonicapan"] },
+        { nombre: "Zacapa", pais: "Guatemala", region: "MX_CENTRO", aliases: ["zacapa"] },
+
+        // Belice
+        { nombre: "Belice (País)", pais: "Belice", region: "MX_CENTRO", aliases: ["belice", "belize"] },
+        { nombre: "Cayo", pais: "Belice", region: "MX_CENTRO", aliases: ["cayo"] },
+        { nombre: "Corozal", pais: "Belice", region: "MX_CENTRO", aliases: ["corozal"] },
+        { nombre: "Orange Walk", pais: "Belice", region: "MX_CENTRO", aliases: ["orange walk", "orangewalk"] },
+        { nombre: "Stann Creek", pais: "Belice", region: "MX_CENTRO", aliases: ["stann creek", "stanncreek"] },
+        { nombre: "Toledo", pais: "Belice", region: "MX_CENTRO", aliases: ["toledo"] },
+
+        // Honduras
+        { nombre: "Honduras (País)", pais: "Honduras", region: "MX_CENTRO", aliases: ["honduras"] },
+        { nombre: "Atlántida", pais: "Honduras", region: "MX_CENTRO", aliases: ["atlantida"] },
+        { nombre: "Choluteca", pais: "Honduras", region: "MX_CENTRO", aliases: ["choluteca"] },
+        { nombre: "Colón", pais: "Honduras / Panamá", region: "MX_CENTRO", aliases: ["colon"] },
+        { nombre: "Comayagua", pais: "Honduras", region: "MX_CENTRO", aliases: ["comayagua"] },
+        { nombre: "Copán", pais: "Honduras", region: "MX_CENTRO", aliases: ["copan"] },
+        { nombre: "Cortés", pais: "Honduras", region: "MX_CENTRO", aliases: ["cortes"] },
+        { nombre: "El Paraíso", pais: "Honduras", region: "MX_CENTRO", aliases: ["el paraiso", "elparaiso"] },
+        { nombre: "Francisco Morazán", pais: "Honduras", region: "MX_CENTRO", aliases: ["francisco morazan", "franciscomorazan"] },
+        { nombre: "Gracias a Dios", pais: "Honduras", region: "MX_CENTRO", aliases: ["gracias a dios", "graciasadios"] },
+        { nombre: "Intibucá", pais: "Honduras", region: "MX_CENTRO", aliases: ["intibuca"] },
+        { nombre: "Islas de la Bahía", pais: "Honduras", region: "MX_CENTRO", aliases: ["islas de la bahia", "islasdelabahia"] },
+        { nombre: "La Paz", pais: "Honduras / El Salvador", region: "MX_CENTRO", aliases: ["la paz", "lapaz"] },
+        { nombre: "Lempira", pais: "Honduras", region: "MX_CENTRO", aliases: ["lempira"] },
+        { nombre: "Ocotepeque", pais: "Honduras", region: "MX_CENTRO", aliases: ["ocotepeque"] },
+        { nombre: "Olancho", pais: "Honduras", region: "MX_CENTRO", aliases: ["olancho"] },
+        { nombre: "Santa Bárbara", pais: "Honduras", region: "MX_CENTRO", aliases: ["santa barbara", "santabarbara"] },
+        { nombre: "Valle", pais: "Honduras", region: "MX_CENTRO", aliases: ["valle"] },
+        { nombre: "Yoro", pais: "Honduras", region: "MX_CENTRO", aliases: ["yoro"] },
+
+        // El Salvador
+        { nombre: "El Salvador (País)", pais: "El Salvador", region: "MX_CENTRO", aliases: ["el salvador", "elsalvador"] },
+        { nombre: "Ahuachapán", pais: "El Salvador", region: "MX_CENTRO", aliases: ["ahuachapan"] },
+        { nombre: "Cabañas", pais: "El Salvador", region: "MX_CENTRO", aliases: ["cabanas"] },
+        { nombre: "Chalatenango", pais: "El Salvador", region: "MX_CENTRO", aliases: ["chalatenango"] },
+        { nombre: "Cuscatlán", pais: "El Salvador", region: "MX_CENTRO", aliases: ["cuscatlan"] },
+        { nombre: "La Libertad", pais: "El Salvador", region: "MX_CENTRO", aliases: ["la libertad", "lalibertad"] },
+        { nombre: "La Unión", pais: "El Salvador", region: "MX_CENTRO", aliases: ["la union", "launion"] },
+        { nombre: "Morazán", pais: "El Salvador", region: "MX_CENTRO", aliases: ["morazan"] },
+        { nombre: "San Miguel", pais: "El Salvador", region: "MX_CENTRO", aliases: ["san miguel", "sanmiguel"] },
+        { nombre: "San Salvador", pais: "El Salvador", region: "MX_CENTRO", aliases: ["san salvador", "sansalvador"] },
+        { nombre: "San Vicente", pais: "El Salvador", region: "MX_CENTRO", aliases: ["san vicente", "sanvicente"] },
+        { nombre: "Santa Ana", pais: "El Salvador", region: "MX_CENTRO", aliases: ["santa ana", "santaana"] },
+        { nombre: "Sonsonate", pais: "El Salvador", region: "MX_CENTRO", aliases: ["sonsonate"] },
+        { nombre: "Usulután", pais: "El Salvador", region: "MX_CENTRO", aliases:
